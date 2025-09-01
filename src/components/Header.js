@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -7,7 +7,7 @@ import {
   faMedium,
   faStackOverflow,
 } from "@fortawesome/free-brands-svg-icons";
-import { Box, HStack } from "@chakra-ui/react";
+import { Box, HStack, IconButton, Link } from "@chakra-ui/react";
 
 const socials = [
   {
@@ -33,6 +33,9 @@ const socials = [
 ];
 
 const Header = () => {
+  const [showHeader, setShowHeader] = useState(true);
+  const prevScrollY = useRef(0);
+
   const handleClick = (anchor) => () => {
     const id = `${anchor}-section`;
     const element = document.getElementById(id);
@@ -44,17 +47,38 @@ const Header = () => {
     }
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > prevScrollY.current) {
+        // scrolling down -> hide header
+        setShowHeader(false);
+      } else {
+        // scrolling up -> show header
+        setShowHeader(true);
+      }
+
+      prevScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <Box
       position="fixed"
       top={0}
       left={0}
       right={0}
-      translateY={0}
+      transform={showHeader ? "translateY(0)" : "translateY(-200px)"}
       transitionProperty="transform"
       transitionDuration=".3s"
       transitionTimingFunction="ease-in-out"
       backgroundColor="#18181b"
+      zIndex={1000}
     >
       <Box color="white" maxWidth="1280px" margin="0 auto">
         <HStack
@@ -65,10 +89,29 @@ const Header = () => {
         >
           <nav>
             {/* Add social media links based on the `socials` data */}
+            {socials.map((social, index) => (
+              <IconButton
+                key={index}
+                as="a"
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                icon={<FontAwesomeIcon icon={social.icon} size="2x"/>}
+                aria-label={social.url}
+                variant="ghost"
+                color="white"
+              />
+            ))}
           </nav>
           <nav>
             <HStack spacing={8}>
               {/* Add links to Projects and Contact me section */}
+              <Link variant="ghost" onClick={handleClick("projects")}>
+                Projects
+              </Link>
+              <Link variant="ghost" onClick={handleClick("contactme")}>
+                Contact me
+              </Link>
             </HStack>
           </nav>
         </HStack>
